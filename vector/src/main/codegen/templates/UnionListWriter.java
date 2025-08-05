@@ -53,6 +53,7 @@ public class Union${listName}Writer extends AbstractFieldWriter {
   private boolean inStruct = false;
   private boolean listStarted = false;
   private String structName;
+  private ArrowType extensionType;
   <#if listName == "LargeList" || listName == "LargeListView">
   private static final long OFFSET_WIDTH = 8;
   <#else>
@@ -203,6 +204,7 @@ public class Union${listName}Writer extends AbstractFieldWriter {
 
   @Override
   public ExtensionWriter extension(ArrowType arrowType) {
+    this.extensionType = arrowType;
     return this;
   }
   @Override
@@ -338,10 +340,12 @@ public class Union${listName}Writer extends AbstractFieldWriter {
     writer.writeExtension(value);
     writer.setPosition(writer.idx() + 1);
   }
+  
   @Override
   public void addExtensionTypeWriterFactory(ExtensionTypeWriterFactory var1) {
-    writer.addExtensionTypeWriterFactory(var1);
+    writer.addExtensionTypeWriterFactory(var1, extensionType);
   }
+  
   public void write(ExtensionHolder var1) {
     writer.write(var1);
     writer.setPosition(writer.idx() + 1);
