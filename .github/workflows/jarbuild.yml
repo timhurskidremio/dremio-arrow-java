@@ -239,10 +239,6 @@ jobs:
             brew uninstall pkg-config@0.29.2 || :
           fi
 
-          # Install basic build tools via brew (vcpkg needs these)
-          brew install cmake ninja pkg-config
-          brew bundle --file=arrow/cpp/Brewfile
-
           # Clean up any existing LLVM installations in favor of vcpkg.
           brew uninstall llvm || :
 
@@ -263,6 +259,10 @@ jobs:
           # used on test  We uninstall Homebrew's Protobuf to ensure using
           # bundled Protobuf.
           brew uninstall protobuf || :
+
+          # Install basic build tools via brew (vcpkg needs these)
+          brew install cmake ninja pkg-config
+          brew bundle --file=arrow/cpp/Brewfile
 
           # Use vcpkg to install LLVM.
           vcpkg install \
