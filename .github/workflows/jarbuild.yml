@@ -262,7 +262,7 @@ jobs:
 
           # Install basic build tools via brew (vcpkg needs these)
           brew install cmake ninja pkg-config
-          brew bundle --file=arrow/cpp/Brewfile
+          brew bundle --file=arrow/cpp/Brewfile || true
 
           # Use vcpkg to install LLVM.
           vcpkg install \
@@ -271,8 +271,8 @@ jobs:
             --x-manifest-root=arrow/ci/vcpkg \
             --overlay-ports=arrow/ci/vcpkg/overlay/llvm/ \
             --x-feature=gandiva-llvm
-            
-          brew bundle --file=Brewfile
+
+          brew bundle --file=Brewfile || true
       - name: Prepare ccache
         run: |
           echo "CCACHE_DIR=${PWD}/ccache" >> ${GITHUB_ENV}
