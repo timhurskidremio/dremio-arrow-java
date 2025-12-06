@@ -22,12 +22,12 @@ on:
       arrow_branch:
         description: 'Arrow branch to build'
         required: true
-        default: main
+        default: dremio_27.0_20_encrypt_decrypt
       arrow_repo:
         description: 'Arrow repository'
         type: string
         required: true
-        default: apache/arrow
+        default: timhurskidremio/dremio-arrow
       release_tag_name:
         description: 'release tag name'
         type: string
