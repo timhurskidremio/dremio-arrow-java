@@ -235,6 +235,9 @@ jobs:
           fi
 
           brew bundle --file=arrow/cpp/Brewfile
+          # llvm@21 depends on z3, but we don't need it for Gandiva.
+          # Uninstall z3 to avoid linking against Homebrew's shared z3.
+          brew uninstall z3 || :
           # We want to link aws-sdk-cpp statically but Homebrew's
           # aws-sdk-cpp provides only shared library. If we have
           # Homebrew's aws-sdk-cpp, our build mix Homebrew's
