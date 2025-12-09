@@ -217,78 +217,36 @@ jobs:
           echo "VCPKG_ROOT=${PWD}" >> ${GITHUB_ENV}
           echo "${PWD}" >> ${GITHUB_PATH}
 
-      - name: Evaluate disk space cleanup opportunities
+      - name: Clean up disk space
         run: |
-          echo "=== Current Disk Usage ==="
+          echo "=== Free disk space BEFORE cleanup ==="
           df -h /
 
           echo ""
-          echo "=== Homebrew Packages (potential cleanup) ==="
-          echo "Homebrew cache size:"
-          du -sh ~/Library/Caches/Homebrew 2>/dev/null || echo "  (not found)"
-          echo "Homebrew downloads size:"
-          du -sh ~/Library/Caches/Homebrew/downloads 2>/dev/null || echo "  (not found)"
+          echo "=== Removing Xcode simulators ==="
+          sudo rm -rf /Library/Developer/CoreSimulator/Caches || :
+          echo "Removed /Library/Developer/CoreSimulator/Caches"
 
           echo ""
-          echo "=== Xcode Caches (potential cleanup) ==="
-          echo "Xcode DerivedData size:"
-          du -sh ~/Library/Developer/Xcode/DerivedData 2>/dev/null || echo "  (not found)"
-          echo "Xcode cache size:"
-          du -sh ~/Library/Caches/com.apple.dt.Xcode 2>/dev/null || echo "  (not found)"
+          echo "=== Removing user simulator data ==="
+          rm -rf ~/Library/Developer/CoreSimulator || :
+          echo "Removed ~/Library/Developer/CoreSimulator"
 
           echo ""
-          echo "=== Docker Images (potential cleanup) ==="
-          echo "Docker images:"
-          docker images --format "table {{.Repository}}\t{{.Size}}" 2>/dev/null | head -20 || echo "  (docker not available)"
-          echo "Total Docker disk usage:"
-          du -sh ~/Library/Containers/com.docker.docker 2>/dev/null || echo "  (not found)"
+          echo "=== Removing temporary files ==="
+          rm -rf /var/tmp/* || :
+          echo "Removed /var/tmp/*"
 
           echo ""
-          echo "=== Other Large Directories ==="
-          echo "Simulator data:"
-          du -sh ~/Library/Developer/CoreSimulator 2>/dev/null || echo "  (not found)"
-          echo "Xcode simulators:"
-          du -sh /Library/Developer/CoreSimulator 2>/dev/null || echo "  (not found)"
+          echo "=== Free disk space AFTER cleanup ==="
+          df -h /
 
-          echo ""
-          echo "=== Swift Package Manager Cache ==="
-          echo "SPM cache size:"
-          du -sh ~/Library/Developer/Xcode/DerivedData 2>/dev/null || echo "  (included in DerivedData above)"
-
-          echo ""
-          echo "=== Homebrew Downloads & Bottles ==="
-          echo "Homebrew downloads directory:"
-          du -sh ~/Library/Caches/Homebrew/downloads 2>/dev/null || echo "  (not found)"
-          echo "Homebrew bottles (pre-built packages):"
-          du -sh ~/Library/Caches/Homebrew/Cask 2>/dev/null || echo "  (not found)"
-
-          echo ""
-          echo "=== Git/Checkout Related ==="
-          echo "Current workspace size:"
-          du -sh . 2>/dev/null || echo "  (not found)"
-          echo "Arrow submodule size:"
-          du -sh arrow 2>/dev/null || echo "  (not found)"
-
-          echo ""
-          echo "=== System Logs & Temporary Files ==="
-          echo "System logs:"
-          du -sh /var/log 2>/dev/null || echo "  (not found)"
-          echo "Temporary files:"
-          du -sh /var/tmp 2>/dev/null || echo "  (not found)"
-          echo "User temp:"
-          du -sh ~/Library/Caches 2>/dev/null || echo "  (not found)"
-
-          echo ""
-          echo "=== Xcode Related ==="
-          echo "Xcode installation size:"
-          du -sh /Applications/Xcode.app 2>/dev/null || echo "  (not found)"
-          echo "Xcode device support:"
-          du -sh ~/Library/Developer/Xcode/iOS\ DeviceSupport 2>/dev/null || echo "  (not found)"
-          echo "Xcode watchOS support:"
-          du -sh ~/Library/Developer/Xcode/watchOS\ DeviceSupport 2>/dev/null || echo "  (not found)"
-          
       - name: Install dependencies
         run: |
+          echo "=== Free disk space at start of dependency installation ==="
+          df -h /
+
+          echo ""
           # Ensure updating python@XXX with the "--overwrite" option.
           # If python@XXX is updated without "--overwrite", it causes
           # a conflict error. Because Python 3 installed not by
@@ -336,6 +294,10 @@ jobs:
 
       - name: Install dependencies (continued)
         run: |
+          echo "=== Free disk space before LLVM build ==="
+          df -h /
+
+          echo ""
           # Use vcpkg to install LLVM.
           vcpkg install \
             --clean-after-build \
@@ -344,6 +306,11 @@ jobs:
             --overlay-ports=arrow/ci/vcpkg/overlay/llvm/ \
             --x-feature=gandiva-llvm
 
+          echo ""
+          echo "=== Free disk space after LLVM build ==="
+          df -h /
+
+          echo ""
           brew bundle --file=Brewfile
       - name: Prepare ccache
         run: |
@@ -356,10 +323,18 @@ jobs:
           restore-keys: jni-macos-${{ matrix.platform.arch }}-
       - name: Build
         run: |
+          echo "=== Free disk space at start of build ==="
+          df -h /
+
+          echo ""
           set -e
           # make brew Java available to CMake
           export JAVA_HOME=$(brew --prefix openjdk@11)/libexec/openjdk.jdk/Contents/Home
           ci/scripts/jni_macos_build.sh . arrow build jni
+
+          echo ""
+          echo "=== Free disk space at end of build ==="
+          df -h /
       - name: Compress into single artifact to keep directory structure
         run: tar -cvzf jni-macos-${{ matrix.platform.arch }}.tar.gz jni/
       - name: Upload artifacts
