@@ -216,6 +216,77 @@ jobs:
           ./bootstrap-vcpkg.sh
           echo "VCPKG_ROOT=${PWD}" >> ${GITHUB_ENV}
           echo "${PWD}" >> ${GITHUB_PATH}
+
+      - name: Evaluate disk space cleanup opportunities
+        run: |
+          echo "=== Current Disk Usage ==="
+          df -h /
+
+          echo ""
+          echo "=== Homebrew Packages (potential cleanup) ==="
+          echo "Homebrew cache size:"
+          du -sh ~/Library/Caches/Homebrew 2>/dev/null || echo "  (not found)"
+          echo "Homebrew downloads size:"
+          du -sh ~/Library/Caches/Homebrew/downloads 2>/dev/null || echo "  (not found)"
+
+          echo ""
+          echo "=== Xcode Caches (potential cleanup) ==="
+          echo "Xcode DerivedData size:"
+          du -sh ~/Library/Developer/Xcode/DerivedData 2>/dev/null || echo "  (not found)"
+          echo "Xcode cache size:"
+          du -sh ~/Library/Caches/com.apple.dt.Xcode 2>/dev/null || echo "  (not found)"
+
+          echo ""
+          echo "=== Docker Images (potential cleanup) ==="
+          echo "Docker images:"
+          docker images --format "table {{.Repository}}\t{{.Size}}" 2>/dev/null | head -20 || echo "  (docker not available)"
+          echo "Total Docker disk usage:"
+          du -sh ~/Library/Containers/com.docker.docker 2>/dev/null || echo "  (not found)"
+
+          echo ""
+          echo "=== Other Large Directories ==="
+          echo "Simulator data:"
+          du -sh ~/Library/Developer/CoreSimulator 2>/dev/null || echo "  (not found)"
+          echo "Xcode simulators:"
+          du -sh /Library/Developer/CoreSimulator 2>/dev/null || echo "  (not found)"
+
+          echo ""
+          echo "=== Swift Package Manager Cache ==="
+          echo "SPM cache size:"
+          du -sh ~/Library/Developer/Xcode/DerivedData 2>/dev/null || echo "  (included in DerivedData above)"
+
+          echo ""
+          echo "=== Homebrew Downloads & Bottles ==="
+          echo "Homebrew downloads directory:"
+          du -sh ~/Library/Caches/Homebrew/downloads 2>/dev/null || echo "  (not found)"
+          echo "Homebrew bottles (pre-built packages):"
+          du -sh ~/Library/Caches/Homebrew/Cask 2>/dev/null || echo "  (not found)"
+
+          echo ""
+          echo "=== Git/Checkout Related ==="
+          echo "Current workspace size:"
+          du -sh . 2>/dev/null || echo "  (not found)"
+          echo "Arrow submodule size:"
+          du -sh arrow 2>/dev/null || echo "  (not found)"
+
+          echo ""
+          echo "=== System Logs & Temporary Files ==="
+          echo "System logs:"
+          du -sh /var/log 2>/dev/null || echo "  (not found)"
+          echo "Temporary files:"
+          du -sh /var/tmp 2>/dev/null || echo "  (not found)"
+          echo "User temp:"
+          du -sh ~/Library/Caches 2>/dev/null || echo "  (not found)"
+
+          echo ""
+          echo "=== Xcode Related ==="
+          echo "Xcode installation size:"
+          du -sh /Applications/Xcode.app 2>/dev/null || echo "  (not found)"
+          echo "Xcode device support:"
+          du -sh ~/Library/Developer/Xcode/iOS\ DeviceSupport 2>/dev/null || echo "  (not found)"
+          echo "Xcode watchOS support:"
+          du -sh ~/Library/Developer/Xcode/watchOS\ DeviceSupport 2>/dev/null || echo "  (not found)"
+          
       - name: Install dependencies
         run: |
           # Ensure updating python@XXX with the "--overwrite" option.
@@ -263,6 +334,8 @@ jobs:
           # bundled Protobuf.
           brew uninstall protobuf
 
+      - name: Install dependencies (continued)
+        run: |
           # Use vcpkg to install LLVM.
           vcpkg install \
             --clean-after-build \
