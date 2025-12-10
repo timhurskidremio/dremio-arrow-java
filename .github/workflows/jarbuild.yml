@@ -158,15 +158,18 @@ jobs:
   jni-macos:
     name: JNI ${{ matrix.platform.runs_on }} ${{ matrix.platform.arch }}
     runs-on: ${{ matrix.platform.runs_on }}
-    timeout-minutes: 445
+    timeout-minutes: 645
     needs:
       - source
     strategy:
       fail-fast: false
       matrix:
         platform:
-          - { runs_on: macos-15-intel, arch: "x86_64"}
-          - { runs_on: macos-15, arch: "aarch_64" }
+          # Using larger runners for faster LLVM builds
+          # macos-15-large: 12 cores, 30GB RAM (Intel x64)
+          # macos-15-xlarge: 5 cores + GPU, 14GB RAM (ARM64 M2)
+          - { runs_on: macos-15-large, arch: "x86_64"}
+          - { runs_on: macos-15-xlarge, arch: "aarch_64" }
     env:
       MACOSX_DEPLOYMENT_TARGET: "15.0"
     steps:
@@ -298,12 +301,24 @@ jobs:
           df -h /
 
           echo ""
-          # Use vcpkg to install LLVM.
+          # Determine the vcpkg triplet based on architecture
+          # Using debug-only builds to save time. For release builds, use:
+          # - arm64-osx-static-release (requires larger runner)
+          # - amd64-osx-static-release (requires larger runner)
+          if [ "$(uname -m)" = "arm64" ]; then
+            VCPKG_TRIPLET="arm64-osx-static-debug"
+          else
+            VCPKG_TRIPLET="amd64-osx-static-debug"
+          fi
+          echo "Using vcpkg triplet: ${VCPKG_TRIPLET}"
+
+          # Use vcpkg to install LLVM (debug only to save time).
           vcpkg install \
             --clean-after-build \
             --x-install-root=${VCPKG_ROOT}/installed \
             --x-manifest-root=arrow/ci/vcpkg \
             --overlay-ports=arrow/ci/vcpkg/overlay/llvm/ \
+            --triplet=${VCPKG_TRIPLET} \
             --x-feature=gandiva-llvm
 
           echo ""
