@@ -319,6 +319,7 @@ jobs:
             --x-install-root=${VCPKG_ROOT}/installed \
             --x-manifest-root=arrow/ci/vcpkg \
             --overlay-ports=arrow/ci/vcpkg/overlay/llvm/ \
+            --overlay-ports=arrow/ci/vcpkg/overlay/brotli/ \
             --overlay-triplets=arrow/ci/vcpkg \
             --triplet=${VCPKG_TRIPLET} \
             --x-feature=gandiva-llvm
