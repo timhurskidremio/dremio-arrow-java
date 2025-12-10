@@ -271,7 +271,9 @@ jobs:
           fi
 
           # Install basic build tools via brew (vcpkg needs these)
-          brew install cmake ninja pkg-config
+          brew install cmake ninja
+          # pkg-config may not be available on all platforms, so install with error handling
+          brew install pkg-config || brew install pkgconfig || :
 
           brew bundle --file=arrow/cpp/Brewfile
 
@@ -317,6 +319,7 @@ jobs:
             --x-install-root=${VCPKG_ROOT}/installed \
             --x-manifest-root=arrow/ci/vcpkg \
             --overlay-ports=arrow/ci/vcpkg/overlay/llvm/ \
+            --overlay-triplets=arrow/ci/vcpkg \
             --triplet=${VCPKG_TRIPLET} \
             --x-feature=gandiva-llvm
 
