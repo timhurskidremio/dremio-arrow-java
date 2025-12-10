@@ -168,7 +168,7 @@ jobs:
           - { runs_on: macos-15-intel, arch: "x86_64"}
           - { runs_on: macos-15, arch: "aarch_64" }
     env:
-      MACOSX_DEPLOYMENT_TARGET: "14.0"
+      MACOSX_DEPLOYMENT_TARGET: "15.0"
     steps:
       - name: Download source archive
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
