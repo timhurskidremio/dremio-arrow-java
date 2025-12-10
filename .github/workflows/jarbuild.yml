@@ -165,11 +165,10 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-          # Using larger runners for faster LLVM builds
-          # macos-15-large: 12 cores, 30GB RAM (Intel x64)
-          # macos-15-xlarge: 5 cores + GPU, 14GB RAM (ARM64 M2)
-          - { runs_on: macos-15-large, arch: "x86_64"}
-          - { runs_on: macos-15-xlarge, arch: "aarch_64" }
+          # Using standard runners with debug-only LLVM build to save time
+          # For faster builds with release LLVM, use: macos-15-large and macos-15-xlarge
+          - { runs_on: macos-15-intel, arch: "x86_64"}
+          - { runs_on: macos-15, arch: "aarch_64" }
     env:
       MACOSX_DEPLOYMENT_TARGET: "15.0"
     steps:
