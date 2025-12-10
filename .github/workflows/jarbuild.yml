@@ -216,8 +216,30 @@ jobs:
           ./bootstrap-vcpkg.sh
           echo "VCPKG_ROOT=${PWD}/arrow/vcpkg" >> ${GITHUB_ENV}
           echo "${PWD}/arrow/vcpkg" >> ${GITHUB_PATH}
+      - name: Clean up disk space
+        run: |
+          echo "=== Free disk space before cleanup ==="
+          df -h /
+
+          echo ""
+          echo "=== Removing Xcode simulators ==="
+          sudo rm -rf /Library/Developer/CoreSimulator/Caches || :
+          echo "Removed /Library/Developer/CoreSimulator/Caches"
+
+          echo ""
+          echo "=== Removing user simulator data ==="
+          rm -rf ~/Library/Developer/CoreSimulator || :
+          echo "Removed ~/Library/Developer/CoreSimulator"
+
+          echo ""
+          echo "=== Free disk space after cleanup ==="
+          df -h /
       - name: Install dependencies
         run: |
+          echo "=== Free disk space at start of dependency installation ==="
+          df -h /
+
+          echo ""
           # Ensure updating python@XXX with the "--overwrite" option.
           # If python@XXX is updated without "--overwrite", it causes
           # a conflict error. Because Python 3 installed not by
@@ -264,6 +286,11 @@ jobs:
           # bundled Protobuf.
           brew uninstall protobuf
 
+          echo ""
+          echo "=== Free disk space before LLVM build ==="
+          df -h /
+
+          echo ""
           # Use vcpkg to install LLVM.
           vcpkg install \
             --clean-after-build \
@@ -271,7 +298,12 @@ jobs:
             --x-manifest-root=arrow/ci/vcpkg \
             --overlay-ports=arrow/ci/vcpkg/overlay/llvm/ \
             --x-feature=gandiva-llvm
-            
+
+          echo ""
+          echo "=== Free disk space after LLVM build ==="
+          df -h /
+
+          echo ""
           brew bundle --file=Brewfile
       - name: Prepare ccache
         run: |
@@ -284,10 +316,18 @@ jobs:
           restore-keys: jni-macos-${{ matrix.platform.arch }}-
       - name: Build
         run: |
+          echo "=== Free disk space at start of build ==="
+          df -h /
+
+          echo ""
           set -e
           # make brew Java available to CMake
           export JAVA_HOME=$(brew --prefix openjdk@11)/libexec/openjdk.jdk/Contents/Home
           ci/scripts/jni_macos_build.sh . arrow build jni
+
+          echo ""
+          echo "=== Free disk space at end of build ==="
+          df -h /
       - name: Compress into single artifact to keep directory structure
         run: tar -cvzf jni-macos-${{ matrix.platform.arch }}.tar.gz jni/
       - name: Upload artifacts
