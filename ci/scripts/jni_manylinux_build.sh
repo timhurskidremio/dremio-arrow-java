@@ -71,6 +71,20 @@ fi
 github_actions_group_begin "Building Arrow C++ libraries"
 devtoolset_version="$(rpm -qa "devtoolset-*-gcc" --queryformat '%{VERSION}' | grep -o "^[0-9]*")"
 devtoolset_include_cpp="/opt/rh/devtoolset-${devtoolset_version}/root/usr/include/c++/${devtoolset_version}"
+
+# Detect architecture for devtoolset include path
+case "$(uname -m)" in
+  x86_64)
+    devtoolset_arch="x86_64-redhat-linux"
+    ;;
+  aarch64)
+    devtoolset_arch="aarch64-redhat-linux"
+    ;;
+  *)
+    devtoolset_arch="$(uname -m)-redhat-linux"
+    ;;
+esac
+
 : "${ARROW_ACERO:=ON}"
 export ARROW_ACERO
 : "${ARROW_BUILD_TESTS:=OFF}"
@@ -88,11 +102,12 @@ export ARROW_ORC
 : "${ARROW_PARQUET:=ON}"
 : "${ARROW_S3:=ON}"
 : "${CMAKE_BUILD_TYPE:=release}"
-: "${CMAKE_UNITY_BUILD:=ON}"
+# Disable Unity build due to compilation issues with Gandiva
+: "${CMAKE_UNITY_BUILD:=OFF}"
 : "${VCPKG_ROOT:=/opt/vcpkg}"
 : "${VCPKG_FEATURE_FLAGS:=-manifests}"
 : "${VCPKG_TARGET_TRIPLET:=${VCPKG_DEFAULT_TRIPLET:-x64-linux-static-${CMAKE_BUILD_TYPE}}}"
-: "${GANDIVA_CXX_FLAGS:=-isystem;${devtoolset_include_cpp};-isystem;${devtoolset_include_cpp}/x86_64-redhat-linux;-lpthread}"
+: "${GANDIVA_CXX_FLAGS:=-isystem;${devtoolset_include_cpp};-isystem;${devtoolset_include_cpp}/${devtoolset_arch};-lpthread}"
 
 export ARROW_TEST_DATA="${arrow_dir}/testing/data"
 export PARQUET_TEST_DATA="${arrow_dir}/cpp/submodules/parquet-testing/data"

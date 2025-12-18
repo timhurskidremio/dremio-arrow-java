@@ -72,7 +72,8 @@ export ARROW_ORC
 : "${ARROW_PARQUET:=ON}"
 : "${ARROW_S3:=ON}"
 : "${CMAKE_BUILD_TYPE:=Release}"
-: "${CMAKE_UNITY_BUILD:=ON}"
+# Disable Unity build due to compilation issues with Gandiva
+: "${CMAKE_UNITY_BUILD:=OFF}"
 
 export ARROW_TEST_DATA="${arrow_dir}/testing/data"
 export PARQUET_TEST_DATA="${arrow_dir}/cpp/submodules/parquet-testing/data"
