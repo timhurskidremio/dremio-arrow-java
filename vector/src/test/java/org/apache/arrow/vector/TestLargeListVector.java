@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,14 +36,13 @@ import org.apache.arrow.vector.complex.impl.UnionLargeListReader;
 import org.apache.arrow.vector.complex.impl.UnionLargeListWriter;
 import org.apache.arrow.vector.complex.reader.FieldReader;
 import org.apache.arrow.vector.complex.writer.BaseWriter.ExtensionWriter;
-import org.apache.arrow.vector.extension.UuidType;
-import org.apache.arrow.vector.holders.UuidHolder;
+import org.apache.arrow.vector.holder.UuidHolder;
 import org.apache.arrow.vector.types.Types.MinorType;
 import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.FieldType;
+import org.apache.arrow.vector.types.pojo.UuidType;
 import org.apache.arrow.vector.util.TransferPair;
-import org.apache.arrow.vector.util.UuidUtility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -1038,9 +1038,9 @@ public class TestLargeListVector {
       UUID u1 = UUID.randomUUID();
       UUID u2 = UUID.randomUUID();
       writer.startList();
-      ExtensionWriter extensionWriter = writer.extension(UuidType.INSTANCE);
-      extensionWriter.writeExtension(u1);
-      extensionWriter.writeExtension(u2);
+      ExtensionWriter extensionWriter = writer.extension(new UuidType());
+      extensionWriter.writeExtension(u1, new UuidType());
+      extensionWriter.writeExtension(u2, new UuidType());
       writer.endList();
 
       // Create second list with UUIDs
@@ -1048,7 +1048,7 @@ public class TestLargeListVector {
       UUID u3 = UUID.randomUUID();
       UUID u4 = UUID.randomUUID();
       writer.startList();
-      extensionWriter = writer.extension(UuidType.INSTANCE);
+      extensionWriter = writer.extension(new UuidType());
       extensionWriter.writeExtension(u3);
       extensionWriter.writeExtension(u4);
       extensionWriter.writeNull();
@@ -1072,12 +1072,14 @@ public class TestLargeListVector {
       FieldReader uuidReader = reader.reader();
       UuidHolder holder = new UuidHolder();
       uuidReader.read(holder);
-      UUID actualUuid = UuidUtility.uuidFromArrowBuf(holder.buffer, 0);
+      ByteBuffer bb = ByteBuffer.wrap(holder.value);
+      UUID actualUuid = new UUID(bb.getLong(), bb.getLong());
       assertEquals(u1, actualUuid);
       reader.next();
       uuidReader = reader.reader();
       uuidReader.read(holder);
-      actualUuid = UuidUtility.uuidFromArrowBuf(holder.buffer, 0);
+      bb = ByteBuffer.wrap(holder.value);
+      actualUuid = new UUID(bb.getLong(), bb.getLong());
       assertEquals(u2, actualUuid);
 
       // Verify second list
@@ -1086,12 +1088,14 @@ public class TestLargeListVector {
       reader.next();
       uuidReader = reader.reader();
       uuidReader.read(holder);
-      actualUuid = UuidUtility.uuidFromArrowBuf(holder.buffer, 0);
+      bb = ByteBuffer.wrap(holder.value);
+      actualUuid = new UUID(bb.getLong(), bb.getLong());
       assertEquals(u3, actualUuid);
       reader.next();
       uuidReader = reader.reader();
       uuidReader.read(holder);
-      actualUuid = UuidUtility.uuidFromArrowBuf(holder.buffer, 0);
+      bb = ByteBuffer.wrap(holder.value);
+      actualUuid = new UUID(bb.getLong(), bb.getLong());
       assertEquals(u4, actualUuid);
       reader.next();
       uuidReader = reader.reader();

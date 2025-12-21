@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,15 +39,14 @@ import org.apache.arrow.vector.complex.writer.BaseWriter.ExtensionWriter;
 import org.apache.arrow.vector.complex.writer.BaseWriter.ListWriter;
 import org.apache.arrow.vector.complex.writer.BaseWriter.MapWriter;
 import org.apache.arrow.vector.complex.writer.FieldWriter;
-import org.apache.arrow.vector.extension.UuidType;
-import org.apache.arrow.vector.holders.UuidHolder;
+import org.apache.arrow.vector.holder.UuidHolder;
 import org.apache.arrow.vector.types.Types.MinorType;
 import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.FieldType;
+import org.apache.arrow.vector.types.pojo.UuidType;
 import org.apache.arrow.vector.util.JsonStringArrayList;
 import org.apache.arrow.vector.util.TransferPair;
-import org.apache.arrow.vector.util.UuidUtility;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -1280,12 +1280,12 @@ public class TestMapVector {
       writer.startMap();
       writer.startEntry();
       writer.key().bigInt().writeBigInt(0);
-      ExtensionWriter extensionWriter = writer.value().extension(UuidType.INSTANCE);
-      extensionWriter.writeExtension(u1, UuidType.INSTANCE);
+      ExtensionWriter extensionWriter = writer.value().extension(new UuidType());
+      extensionWriter.writeExtension(u1, new UuidType());
       writer.endEntry();
       writer.startEntry();
       writer.key().bigInt().writeBigInt(1);
-      extensionWriter.writeExtension(u2, UuidType.INSTANCE);
+      extensionWriter.writeExtension(u2, new UuidType());
       writer.endEntry();
       writer.endMap();
 
@@ -1297,12 +1297,14 @@ public class TestMapVector {
       FieldReader uuidReader = mapReader.value();
       UuidHolder holder = new UuidHolder();
       uuidReader.read(holder);
-      UUID actualUuid = UuidUtility.uuidFromArrowBuf(holder.buffer, 0);
+      ByteBuffer bb = ByteBuffer.wrap(holder.value);
+      UUID actualUuid = new UUID(bb.getLong(), bb.getLong());
       assertEquals(u1, actualUuid);
       mapReader.next();
       uuidReader = mapReader.value();
       uuidReader.read(holder);
-      actualUuid = UuidUtility.uuidFromArrowBuf(holder.buffer, 0);
+      bb = ByteBuffer.wrap(holder.value);
+      actualUuid = new UUID(bb.getLong(), bb.getLong());
       assertEquals(u2, actualUuid);
     }
   }
@@ -1319,13 +1321,13 @@ public class TestMapVector {
       writer.startMap();
       writer.startEntry();
       writer.key().bigInt().writeBigInt(0);
-      ExtensionWriter extensionWriter = writer.value().extension(UuidType.INSTANCE);
-      extensionWriter.writeExtension(u1, UuidType.INSTANCE);
+      ExtensionWriter extensionWriter = writer.value().extension(new UuidType());
+      extensionWriter.writeExtension(u1, new UuidType());
       writer.endEntry();
       writer.startEntry();
       writer.key().bigInt().writeBigInt(1);
-      extensionWriter = writer.value().extension(UuidType.INSTANCE);
-      extensionWriter.writeExtension(u2, UuidType.INSTANCE);
+      extensionWriter = writer.value().extension(new UuidType());
+      extensionWriter.writeExtension(u2, new UuidType());
       writer.endEntry();
       writer.endMap();
 
@@ -1340,12 +1342,14 @@ public class TestMapVector {
       FieldReader uuidReader = mapReader.value();
       UuidHolder holder = new UuidHolder();
       uuidReader.read(holder);
-      UUID actualUuid = UuidUtility.uuidFromArrowBuf(holder.buffer, 0);
+      ByteBuffer bb = ByteBuffer.wrap(holder.value);
+      UUID actualUuid = new UUID(bb.getLong(), bb.getLong());
       assertEquals(u1, actualUuid);
       mapReader.next();
       uuidReader = mapReader.value();
       uuidReader.read(holder);
-      actualUuid = UuidUtility.uuidFromArrowBuf(holder.buffer, 0);
+      bb = ByteBuffer.wrap(holder.value);
+      actualUuid = new UUID(bb.getLong(), bb.getLong());
       assertEquals(u2, actualUuid);
     }
   }
