@@ -34,7 +34,6 @@ import org.apache.arrow.vector.complex.MapVector;
 import org.apache.arrow.vector.complex.StructVector;
 import org.apache.arrow.vector.complex.impl.UnionMapReader;
 import org.apache.arrow.vector.complex.impl.UnionMapWriter;
-import org.apache.arrow.vector.complex.impl.UuidWriterFactory;
 import org.apache.arrow.vector.complex.reader.FieldReader;
 import org.apache.arrow.vector.complex.writer.BaseWriter.ExtensionWriter;
 import org.apache.arrow.vector.complex.writer.BaseWriter.ListWriter;
@@ -1282,14 +1281,11 @@ public class TestMapVector {
       writer.startEntry();
       writer.key().bigInt().writeBigInt(0);
       ExtensionWriter extensionWriter = writer.value().extension(new UuidType());
-      extensionWriter.addExtensionTypeWriterFactory(new UuidWriterFactory());
-      extensionWriter.writeExtension(u1);
+      extensionWriter.writeExtension(u1, new UuidType());
       writer.endEntry();
       writer.startEntry();
       writer.key().bigInt().writeBigInt(1);
-      extensionWriter = writer.value().extension(new UuidType());
-      extensionWriter.addExtensionTypeWriterFactory(new UuidWriterFactory());
-      extensionWriter.writeExtension(u2);
+      extensionWriter.writeExtension(u2, new UuidType());
       writer.endEntry();
       writer.endMap();
 
@@ -1326,20 +1322,18 @@ public class TestMapVector {
       writer.startEntry();
       writer.key().bigInt().writeBigInt(0);
       ExtensionWriter extensionWriter = writer.value().extension(new UuidType());
-      extensionWriter.addExtensionTypeWriterFactory(new UuidWriterFactory());
-      extensionWriter.writeExtension(u1);
+      extensionWriter.writeExtension(u1, new UuidType());
       writer.endEntry();
       writer.startEntry();
       writer.key().bigInt().writeBigInt(1);
       extensionWriter = writer.value().extension(new UuidType());
-      extensionWriter.addExtensionTypeWriterFactory(new UuidWriterFactory());
-      extensionWriter.writeExtension(u2);
+      extensionWriter.writeExtension(u2, new UuidType());
       writer.endEntry();
       writer.endMap();
 
       writer.setValueCount(1);
       outVector.allocateNew();
-      outVector.copyFrom(0, 0, inVector, new UuidWriterFactory());
+      outVector.copyFrom(0, 0, inVector);
       outVector.setValueCount(1);
 
       UnionMapReader mapReader = outVector.getReader();

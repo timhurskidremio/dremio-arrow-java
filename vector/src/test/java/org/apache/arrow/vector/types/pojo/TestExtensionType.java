@@ -16,6 +16,7 @@
  */
 package org.apache.arrow.vector.types.pojo;
 
+import static org.apache.arrow.vector.TestUtils.ensureRegistered;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -43,10 +44,12 @@ import org.apache.arrow.vector.FixedSizeBinaryVector;
 import org.apache.arrow.vector.Float4Vector;
 import org.apache.arrow.vector.UuidVector;
 import org.apache.arrow.vector.ValueIterableVector;
+import org.apache.arrow.vector.ValueVector;
 import org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.arrow.vector.compare.Range;
 import org.apache.arrow.vector.compare.RangeEqualsVisitor;
 import org.apache.arrow.vector.complex.StructVector;
+import org.apache.arrow.vector.complex.writer.FieldWriter;
 import org.apache.arrow.vector.ipc.ArrowFileReader;
 import org.apache.arrow.vector.ipc.ArrowFileWriter;
 import org.apache.arrow.vector.types.FloatingPointPrecision;
@@ -59,7 +62,7 @@ public class TestExtensionType {
   /** Test that a custom UUID type can be round-tripped through a temporary file. */
   @Test
   public void roundtripUuid() throws IOException {
-    ExtensionTypeRegistry.register(new UuidType());
+    ensureRegistered(new UuidType());
     final Schema schema =
         new Schema(Collections.singletonList(Field.nullable("a", new UuidType())));
     try (final BufferAllocator allocator = new RootAllocator(Integer.MAX_VALUE);
@@ -113,7 +116,7 @@ public class TestExtensionType {
   /** Test that a custom UUID type can be read as its underlying type. */
   @Test
   public void readUnderlyingType() throws IOException {
-    ExtensionTypeRegistry.register(new UuidType());
+    ensureRegistered(new UuidType());
     final Schema schema =
         new Schema(Collections.singletonList(Field.nullable("a", new UuidType())));
     try (final BufferAllocator allocator = new RootAllocator(Integer.MAX_VALUE);
@@ -330,6 +333,11 @@ public class TestExtensionType {
     @Override
     public FieldVector getNewVector(String name, FieldType fieldType, BufferAllocator allocator) {
       return new LocationVector(name, allocator);
+    }
+
+    @Override
+    public FieldWriter getNewFieldWriter(ValueVector vector) {
+      throw new UnsupportedOperationException("Not yet implemented.");
     }
   }
 

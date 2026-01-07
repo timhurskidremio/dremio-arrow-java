@@ -72,6 +72,7 @@ public abstract class BaseFixedWidthVector extends BaseValueVector
     refreshValueCapacity();
   }
 
+  @Override
   public int getTypeWidth() {
     return typeWidth;
   }

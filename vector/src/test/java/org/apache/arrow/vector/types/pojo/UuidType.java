@@ -20,10 +20,12 @@ import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.FixedSizeBinaryVector;
 import org.apache.arrow.vector.UuidVector;
+import org.apache.arrow.vector.ValueVector;
+import org.apache.arrow.vector.complex.impl.UuidWriterImpl;
+import org.apache.arrow.vector.complex.writer.FieldWriter;
 import org.apache.arrow.vector.types.pojo.ArrowType.ExtensionType;
 
 public class UuidType extends ExtensionType {
-
   @Override
   public ArrowType storageType() {
     return new ArrowType.FixedSizeBinary(16);
@@ -56,5 +58,10 @@ public class UuidType extends ExtensionType {
   @Override
   public FieldVector getNewVector(String name, FieldType fieldType, BufferAllocator allocator) {
     return new UuidVector(name, allocator, new FixedSizeBinaryVector(name, allocator, 16));
+  }
+
+  @Override
+  public FieldWriter getNewFieldWriter(ValueVector vector) {
+    return new UuidWriterImpl((UuidVector) vector);
   }
 }
