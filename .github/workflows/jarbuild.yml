@@ -501,14 +501,31 @@ jobs:
           version=${ver%-rc*}
           version=${version#v}
           rc=${ver#*-rc}
+          
+          # Create release if it doesn't exist, or skip if it does
           gh release create ${{github.event.inputs.release_tag_name}} \
             --generate-notes \
             --prerelease \
             --repo ${GITHUB_REPOSITORY} \
             --title "Apache Arrow Java ${version} RC${rc}" \
-            --verify-tag
+            --verify-tag || echo "Release already exists, will update artifacts..."
+          
+          # Delete all existing assets from the release
+          echo "Deleting existing artifacts..."
+          gh release view ${{github.event.inputs.release_tag_name}} \
+            --repo ${GITHUB_REPOSITORY} \
+            --json assets \
+            --jq '.assets[].name' | while read asset; do
+            echo "Deleting asset: $asset"
+            gh release delete-asset ${{github.event.inputs.release_tag_name}} \
+              "$asset" \
+              --repo ${GITHUB_REPOSITORY} \
+              --yes || true
+          done
+          
           # GitHub CLI does not respect their own rate limits
           # https://github.com/cli/cli/issues/9586
+          echo "Uploading new artifacts..."
           for artifact in artifacts/*/*; do
             sleep 1
             gh release upload ${{github.event.inputs.release_tag_name}} \
